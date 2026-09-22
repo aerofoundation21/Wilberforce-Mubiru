@@ -98,9 +98,19 @@ export const Portfolio: React.FC = () => {
     }
   };
 
-  // Always combine custom uploads with fresh INITIAL_PROJECTS and original image overrides
+  // Merge INITIAL_PROJECTS with custom uploads (deduplicating by id and prioritizing user uploads)
   const allProjects = useMemo(() => {
-    return [...customUploads, ...INITIAL_PROJECTS].map((p) => {
+    const projectMap = new Map<string, ProjectItem>();
+    // Register standard projects
+    for (const p of INITIAL_PROJECTS) {
+      projectMap.set(p.id, p);
+    }
+    // Overlay user uploads (with latest local edits or uploaded images)
+    for (const p of customUploads) {
+      projectMap.set(p.id, p);
+    }
+    // Apply standalone image overrides
+    return Array.from(projectMap.values()).map((p) => {
       if (imageOverrides[p.id]) {
         return { ...p, img: imageOverrides[p.id] };
       }
