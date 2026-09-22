@@ -123,6 +123,26 @@ export const Portfolio: React.FC = () => {
   const [webMobileSingleIndex, setWebMobileSingleIndex] = useState<number>(0);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
 
+  // Safe fallback image if original file path is still loading
+  const getFallbackArtwork = (tag: string) => {
+    if (tag.includes('Safety') || tag.includes('Heat Press') || tag.includes('Reflector')) {
+      return '/portfolio/makindye-safety-vests.jpg';
+    }
+    if (tag.includes('DTF')) {
+      return '/portfolio/ukaid-collection.jpg';
+    }
+    if (tag.includes('Screen Printing')) {
+      return '/portfolio/tusimba-team-distribution.jpg';
+    }
+    if (tag.includes('CorelDRAW') || tag.includes('Logo')) {
+      return '/portfolio/makindye-coreldraw-prepress.jpg';
+    }
+    if (tag.includes('Vinyl')) {
+      return '/portfolio/grassland-guardian-uganda.jpg';
+    }
+    return '/portfolio/oxfam-ireland.jpg';
+  };
+
   // New project upload form state
   const [targetCatalogForUpload, setTargetCatalogForUpload] = useState<CatalogDomain>('graphics');
   const [newTitle, setNewTitle] = useState('');
@@ -755,6 +775,13 @@ export const Portfolio: React.FC = () => {
                   key={currentGraphicsProject.id}
                   src={currentGraphicsProject.img}
                   alt={currentGraphicsProject.title}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    const fallback = getFallbackArtwork(currentGraphicsProject.tag);
+                    if (target.src !== fallback) {
+                      target.src = fallback;
+                    }
+                  }}
                   className="w-full h-full object-contain sm:object-cover transition duration-700 group-hover:scale-[1.02]"
                 />
 
@@ -812,6 +839,13 @@ export const Portfolio: React.FC = () => {
                       src={project.img}
                       alt={project.title}
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fallback = getFallbackArtwork(project.tag);
+                        if (target.src !== fallback) {
+                          target.src = fallback;
+                        }
+                      }}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-3 left-3">

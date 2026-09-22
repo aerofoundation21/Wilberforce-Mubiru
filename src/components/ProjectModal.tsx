@@ -32,6 +32,21 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, on
           <img
             src={project.img}
             alt={project.title}
+            onError={(e) => {
+              const target = e.currentTarget;
+              const fallback = project.tag.includes('CorelDRAW') || project.tag.includes('Logo')
+                ? '/portfolio/makindye-coreldraw-prepress.jpg'
+                : project.tag.includes('Screen Printing')
+                ? '/portfolio/tusimba-team-distribution.jpg'
+                : project.tag.includes('DTF')
+                ? '/portfolio/ukaid-collection.jpg'
+                : project.tag.includes('Heat Press') || project.tag.includes('Reflector')
+                ? '/portfolio/makindye-safety-vests.jpg'
+                : '/portfolio/oxfam-ireland.jpg';
+              if (target.src !== fallback) {
+                target.src = fallback;
+              }
+            }}
             className="w-full h-auto max-h-[58vh] object-contain mx-auto"
           />
           <button
