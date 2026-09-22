@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 1080" width="100%" height="100%">
+  <defs>
+    <linearGradient id="phoneBorder5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3A3C"/>
+      <stop offset="50%" stop-color="#1C1C1E"/>
+      <stop offset="100%" stop-color="#2C2C2E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Device Frame (Pixel 9 Pro) -->
+  <rect x="10" y="10" width="520" height="1060" rx="48" fill="url(#phoneBorder5)" stroke="#555" stroke-width="2"/>
+  <rect x="20" y="20" width="500" height="1040" rx="40" fill="#FFFFFF"/>
+
+  <!-- Status Bar & Punchhole -->
+  <circle cx="270" cy="50" r="12" fill="#000"/>
+
+  <!-- Centered Splash Logo (Replicating WA0005) -->
+  <g transform="translate(270, 530)">
+    <!-- Grin Text in Warm Orange -->
+    <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" fill="#E86C1F" text-anchor="middle" letter-spacing="-1">Grin</text>
+    
+    <!-- Green Leaf over the 'i' dot -->
+    <g transform="translate(18, -48)">
+      <path d="M0 0 C0 0 16 2 18 16 C19 26 10 32 0 32 C-10 32 -15 24 -15 14 C-15 4 -7 -2 0 0 Z" fill="#22C55E"/>
+      <path d="M-8 22 Q0 12 10 3" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    </g>
+
+    <!-- Mirrored MATES in Forest Green underneath -->
+    <g transform="translate(0, 32) scale(1, -1)">
+      <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="800" fill="#15803D" text-anchor="middle" letter-spacing="3" opacity="0.9">MATES</text>
+    </g>
+  </g>
+
+  <!-- Bottom Navigation Line -->
+  <rect x="200" y="1040" width="140" height="4" rx="2" fill="#000" opacity="0.6"/>
+</svg>

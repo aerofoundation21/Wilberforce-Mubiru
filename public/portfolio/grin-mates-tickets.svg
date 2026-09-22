@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 1080" width="100%" height="100%">
+  <defs>
+    <linearGradient id="phoneBorder3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3A3C"/>
+      <stop offset="50%" stop-color="#1C1C1E"/>
+      <stop offset="100%" stop-color="#2C2C2E"/>
+    </linearGradient>
+    <filter id="ticketShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.04"/>
+    </filter>
+  </defs>
+
+  <!-- Device Frame (Pixel 9 Pro) -->
+  <rect x="10" y="10" width="520" height="1060" rx="48" fill="url(#phoneBorder3)" stroke="#555" stroke-width="2"/>
+  <rect x="20" y="20" width="500" height="1040" rx="40" fill="#FFFFFF"/>
+
+  <!-- Status Bar & Punchhole -->
+  <circle cx="270" cy="50" r="12" fill="#000"/>
+  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#222">8:19</text>
+  <rect x="460" y="44" width="20" height="12" rx="3" fill="none" stroke="#222" stroke-width="1.5"/>
+  <rect x="462" y="46" width="14" height="8" rx="1.5" fill="#222"/>
+
+  <!-- Top App Bar -->
+  <g transform="translate(45, 100)">
+    <text x="0" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="800" fill="#134E4A">Events &amp; Tickets</text>
+    <g transform="translate(400, 10)">
+      <path d="M12 4 C8 4 6 7 6 12 L4 16 L20 16 L18 12 C18 7 16 4 12 4 Z M10 18 C10 19 11 20 12 20 C13 20 14 19 14 18" stroke="#374151" stroke-width="1.8" fill="none"/>
+    </g>
+    <g transform="translate(435, 10)">
+      <circle cx="10" cy="7" r="4" stroke="#374151" stroke-width="1.8" fill="none"/>
+      <path d="M3 18 C3 14 7 13 10 13 C13 13 17 14 17 18" stroke="#374151" stroke-width="1.8" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Segmented Tabs (Upcoming / My Tickets) -->
+  <g transform="translate(45, 150)">
+    <text x="75" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="500" fill="#6B7280" text-anchor="middle">Upcoming</text>
+    <text x="290" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#065F46" text-anchor="middle">My Tickets</text>
+    <rect x="250" y="34" width="80" height="3.5" rx="2" fill="#059669"/>
+  </g>
+
+  <!-- Ticket 1: Sustainability Workshop -->
+  <g transform="translate(45, 215)" filter="url(#ticketShadow)">
+    <rect x="0" y="0" width="450" height="135" rx="16" fill="#F4FBF7" stroke="#E6F4EA" stroke-width="1.5"/>
+    <text x="20" y="35" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700" fill="#0F172A">Sustainability Workshop</text>
+    <rect x="360" y="18" width="65" height="24" rx="12" fill="#DEF7EC"/>
+    <text x="392" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Active</text>
+    
+    <text x="20" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#64748B">🕒 Oct 20, 2025 • 14:00</text>
+    <text x="20" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#64748B">📍 Online Event</text>
+    
+    <g transform="translate(20, 105)">
+      <rect x="0" y="0" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2"/>
+      <rect x="3" y="3" width="8" height="8" fill="#10B981"/>
+      <text x="25" y="12" font-family="monospace" font-size="12" font-weight="700" fill="#047857">TICKET-2025-001</text>
+    </g>
+  </g>
+
+  <!-- Ticket 2: Tree Planting Marathon -->
+  <g transform="translate(45, 375)" filter="url(#ticketShadow)">
+    <rect x="0" y="0" width="450" height="135" rx="16" fill="#F4FBF7" stroke="#E6F4EA" stroke-width="1.5"/>
+    <text x="20" y="35" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700" fill="#0F172A">Tree Planting Marathon</text>
+    <rect x="360" y="18" width="65" height="24" rx="12" fill="#DEF7EC"/>
+    <text x="392" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Active</text>
+    
+    <text x="20" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#64748B">🕒 Oct 28, 2025 • 07:00</text>
+    <text x="20" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#64748B">📍 Kampala, Uganda</text>
+    
+    <g transform="translate(20, 105)">
+      <rect x="0" y="0" width="14" height="14" fill="none" stroke="#10B981" stroke-width="2"/>
+      <rect x="3" y="3" width="8" height="8" fill="#10B981"/>
+      <text x="25" y="12" font-family="monospace" font-size="12" font-weight="700" fill="#047857">TICKET-2025-002</text>
+    </g>
+  </g>
+
+  <!-- Ticket 3: Climate Change Conference (Used) -->
+  <g transform="translate(45, 535)" filter="url(#ticketShadow)">
+    <rect x="0" y="0" width="450" height="135" rx="16" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+    <text x="20" y="35" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700" fill="#64748B">Climate Change Conference</text>
+    <rect x="360" y="18" width="65" height="24" rx="12" fill="#F1F5F9"/>
+    <text x="392" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#94A3B8" text-anchor="middle">Used</text>
+    
+    <text x="20" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#94A3B8">🕒 Sep 15, 2025 • 09:00</text>
+    <text x="20" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#94A3B8">📍 Nairobi, Kenya</text>
+    
+    <g transform="translate(20, 105)">
+      <rect x="0" y="0" width="14" height="14" fill="none" stroke="#94A3B8" stroke-width="2"/>
+      <rect x="3" y="3" width="8" height="8" fill="#94A3B8"/>
+      <text x="25" y="12" font-family="monospace" font-size="12" font-weight="700" fill="#94A3B8">TICKET-2025-003</text>
+    </g>
+  </g>
+
+  <!-- Bottom Navigation Bar (5 tabs) -->
+  <g transform="translate(20, 960)">
+    <rect x="0" y="0" width="500" height="80" fill="#FFFFFF" stroke="#F1F5F9" stroke-width="1"/>
+    
+    <!-- Home -->
+    <g transform="translate(40, 15)">
+      <path d="M15 5 L5 15 L8 15 L8 25 L22 25 L22 15 L25 15 Z" fill="none" stroke="#94A3B8" stroke-width="2"/>
+      <text x="15" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Home</text>
+    </g>
+
+    <!-- Services -->
+    <g transform="translate(130, 15)">
+      <path d="M8 8 L22 8 L24 25 L6 25 Z M11 8 C11 4 19 4 19 8" fill="none" stroke="#94A3B8" stroke-width="2"/>
+      <text x="15" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Services</text>
+    </g>
+
+    <!-- Go Green -->
+    <g transform="translate(225, 15)">
+      <path d="M15 6 C15 6 22 10 22 18 C22 23 18 25 15 25 C12 25 8 23 8 18 C8 10 15 6 15 6 Z" fill="none" stroke="#94A3B8" stroke-width="2"/>
+      <text x="15" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Go Green</text>
+    </g>
+
+    <!-- Events (Active Green) -->
+    <g transform="translate(325, 15)">
+      <rect x="5" y="6" width="20" height="19" rx="3" fill="none" stroke="#059669" stroke-width="2"/>
+      <line x1="5" y1="12" x2="25" y2="12" stroke="#059669" stroke-width="2"/>
+      <circle cx="10" cy="17" r="1.5" fill="#059669"/>
+      <circle cx="15" cy="17" r="1.5" fill="#059669"/>
+      <circle cx="20" cy="17" r="1.5" fill="#059669"/>
+      <text x="15" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Events</text>
+    </g>
+
+    <!-- Wallet -->
+    <g transform="translate(420, 15)">
+      <rect x="5" y="8" width="20" height="16" rx="3" fill="none" stroke="#94A3B8" stroke-width="2"/>
+      <circle cx="18" cy="16" r="2" fill="#94A3B8"/>
+      <text x="15" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Wallet</text>
+    </g>
+  </g>
+
+  <!-- Bottom Navigation Line -->
+  <rect x="200" y="1040" width="140" height="4" rx="2" fill="#000" opacity="0.6"/>
+</svg>

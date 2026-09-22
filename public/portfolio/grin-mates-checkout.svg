@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 1080" width="100%" height="100%">
+  <defs>
+    <linearGradient id="phoneBorder4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A3A3C"/>
+      <stop offset="50%" stop-color="#1C1C1E"/>
+      <stop offset="100%" stop-color="#2C2C2E"/>
+    </linearGradient>
+    <filter id="sheetShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="-8" stdDeviation="16" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Device Frame (Pixel 9 Pro) -->
+  <rect x="10" y="10" width="520" height="1060" rx="48" fill="url(#phoneBorder4)" stroke="#555" stroke-width="2"/>
+  <rect x="20" y="20" width="500" height="1040" rx="40" fill="#FFFFFF"/>
+
+  <!-- Status Bar & Punchhole -->
+  <circle cx="270" cy="50" r="12" fill="#000"/>
+  <text x="50" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#222">8:20</text>
+  <rect x="460" y="44" width="20" height="12" rx="3" fill="none" stroke="#222" stroke-width="1.5"/>
+  <rect x="462" y="46" width="14" height="8" rx="1.5" fill="#222"/>
+
+  <!-- Dimmed Background of Events Screen -->
+  <g opacity="0.25">
+    <text x="45" y="125" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="800" fill="#134E4A">Events &amp; Tickets</text>
+    <rect x="45" y="160" width="450" height="200" rx="16" fill="#D1FAE5"/>
+  </g>
+  <rect x="20" y="20" width="500" height="1040" rx="40" fill="#000000" opacity="0.3"/>
+
+  <!-- Bottom Sheet Modal (from WA0008) -->
+  <g transform="translate(35, 410)" filter="url(#sheetShadow)">
+    <rect x="0" y="0" width="470" height="610" rx="28" fill="#FFFFFF"/>
+
+    <!-- Handle Bar -->
+    <rect x="205" y="14" width="60" height="5" rx="2.5" fill="#E2E8F0"/>
+
+    <!-- Event Title & Metadata -->
+    <g transform="translate(30, 45)">
+      <text x="0" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#0F172A">Global Climate Summit 2025</text>
+      
+      <g transform="translate(0, 50)">
+        <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#64748B">🕒 Nov 15, 2025 • 09:00</text>
+        <text x="0" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#64748B">📍 Nairobi, Kenya</text>
+        <text x="0" y="56" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#64748B">👥 150 tickets available</text>
+      </g>
+
+      <!-- About this event -->
+      <g transform="translate(0, 145)">
+        <text x="0" y="0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700" fill="#0F172A">About this event</text>
+        <text x="0" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#475569">Join us for this amazing eco-friendly event. Learn,</text>
+        <text x="0" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#475569">connect, and make a difference in the fight against climate</text>
+        <text x="0" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#475569">change. This event brings together experts, activists, and</text>
+        <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#475569">community members.</text>
+      </g>
+
+      <!-- Price & Eco Points Box -->
+      <g transform="translate(0, 260)">
+        <rect x="0" y="0" width="410" height="75" rx="16" fill="#F0FDF4" stroke="#DCFCE7" stroke-width="1.5"/>
+        <text x="25" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="500" fill="#64748B">Ticket Price</text>
+        <text x="25" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800" fill="#059669">15.00 cUSD</text>
+
+        <text x="385" y="28" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="end">Eco Points</text>
+        <text x="385" y="55" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="800" fill="#0284C7" text-anchor="end">✪ +150</text>
+      </g>
+
+      <!-- Purchase Ticket Button -->
+      <g transform="translate(0, 365)">
+        <rect x="0" y="0" width="410" height="56" rx="16" fill="#10B981"/>
+        <text x="205" y="35" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">Purchase Ticket</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom Navigation Line -->
+  <rect x="200" y="1040" width="140" height="4" rx="2" fill="#000" opacity="0.6"/>
+</svg>
