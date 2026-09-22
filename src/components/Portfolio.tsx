@@ -21,9 +21,20 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Download,
+  FileCode,
+  Check,
+  Database
 } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
+import { 
+  compressImage, 
+  saveCustomUploads, 
+  loadCustomUploads, 
+  saveImageOverride, 
+  loadImageOverrides 
+} from '../utils/imageStorage';
 
 const GRAPHICS_CATEGORIES: GraphicsCategory[] = [
   'All Graphics',
@@ -48,42 +59,43 @@ const WEB_MOBILE_CATEGORIES: WebMobileCategory[] = [
 ];
 
 export const Portfolio: React.FC = () => {
-  // Isolate user custom uploads so INITIAL_PROJECTS are ALWAYS fresh & never blocked by stale cache
-  const [customUploads, setCustomUploads] = useState<ProjectItem[]>(() => {
-    try {
-      localStorage.removeItem('rv_portfolio_projects');
-      localStorage.removeItem('rv_portfolio_projects_v2');
-      localStorage.removeItem('rv_portfolio_projects_v3');
-      const saved = localStorage.getItem('rv_user_custom_uploads_v4');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [customUploads, setCustomUploads] = useState<ProjectItem[]>([]);
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
+  const [isCompressing, setIsCompressing] = useState<boolean>(false);
+  const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
-  // Track original user image uploads / replacements
-  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>(() => {
-    try {
-      const saved = localStorage.getItem('rv_user_image_overrides_v1');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  const handleImageOverride = (projectId: string, file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (result) {
-        setImageOverrides((prev) => {
-          const updated = { ...prev, [projectId]: result };
-          localStorage.setItem('rv_user_image_overrides_v1', JSON.stringify(updated));
-          return updated;
-        });
+  // Load persisted custom uploads and image overrides from IndexedDB
+  useEffect(() => {
+    let isMounted = true;
+    const initStorage = async () => {
+      try {
+        const [uploads, overrides] = await Promise.all([
+          loadCustomUploads(),
+          loadImageOverrides()
+        ]);
+        if (isMounted) {
+          if (uploads && uploads.length > 0) setCustomUploads(uploads);
+          if (overrides && Object.keys(overrides).length > 0) setImageOverrides(overrides);
+        }
+      } catch (err) {
+        console.warn('Failed to load catalog storage', err);
       }
     };
-    reader.readAsDataURL(file);
+    initStorage();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleImageOverride = async (projectId: string, file: File) => {
+    try {
+      // Auto-compress large photos to prevent exceeding browser storage limits
+      const compressed = await compressImage(file, 1600, 0.84);
+      setImageOverrides((prev) => ({ ...prev, [projectId]: compressed }));
+      await saveImageOverride(projectId, compressed);
+    } catch (err) {
+      console.error('Failed to override image', err);
+    }
   };
 
   // Always combine custom uploads with fresh INITIAL_PROJECTS and original image overrides
@@ -306,21 +318,23 @@ export const Portfolio: React.FC = () => {
   const currentGraphicsProject = filteredGraphicsProjects[graphicsSingleIndex] || filteredGraphicsProjects[0];
   const currentWebMobileProject = filteredWebMobileProjects[webMobileSingleIndex] || filteredWebMobileProjects[0];
 
-  // Handle local image file upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local image file upload with automatic compression
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setNewImagePreview(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      setIsCompressing(true);
+      try {
+        const compressed = await compressImage(file, 1400, 0.82);
+        setNewImagePreview(compressed);
+      } catch (err) {
+        console.error('Failed to compress image', err);
+      } finally {
+        setIsCompressing(false);
+      }
     }
   };
 
-  const handleAddNewProject = (e: React.FormEvent) => {
+  const handleAddNewProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newImagePreview) return;
 
@@ -341,11 +355,7 @@ export const Portfolio: React.FC = () => {
 
     const updated = [newProject, ...customUploads];
     setCustomUploads(updated);
-    try {
-      localStorage.setItem('rv_user_custom_uploads_v4', JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
+    await saveCustomUploads(updated);
 
     // Reset form
     setNewTitle('');
@@ -354,6 +364,44 @@ export const Portfolio: React.FC = () => {
     setNewDescription('');
     setNewImagePreview('');
     setShowUploadModal(false);
+  };
+
+  const handleDownloadBackup = () => {
+    const backupData = {
+      exportedAt: new Date().toISOString(),
+      customUploadsCount: customUploads.length,
+      customUploads,
+      imageOverrides
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wilberforce-portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyCodeSnippet = () => {
+    if (customUploads.length === 0) return;
+    const tsCode = customUploads.map((p) => `  {
+    id: ${JSON.stringify(p.id)},
+    title: ${JSON.stringify(p.title)},
+    client: ${JSON.stringify(p.client)},
+    tag: ${JSON.stringify(p.tag)},
+    catalog: ${JSON.stringify(p.catalog)},
+    caption: ${JSON.stringify(p.caption)},
+    description: ${JSON.stringify(p.description)},
+    technique: ${JSON.stringify(p.technique)},
+    img: "/portfolio/${p.id}.jpg", // Place original image in public/portfolio/
+    year: ${JSON.stringify(p.year || '2025')},
+    volume: ${JSON.stringify(p.volume || '1')},
+    location: "Kampala, Uganda"
+  }`).join(',\n');
+
+    navigator.clipboard.writeText(`// Add these items to INITIAL_PROJECTS in src/data/projects.ts:\n${tsCode}`);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 3000);
   };
 
   return (
@@ -374,7 +422,27 @@ export const Portfolio: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {customUploads.length > 0 && (
+              <>
+                <button
+                  onClick={handleDownloadBackup}
+                  title="Download a JSON backup of all your uploaded projects"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.05] hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:text-white transition"
+                >
+                  <Download size={13} />
+                  <span>Backup ({customUploads.length})</span>
+                </button>
+                <button
+                  onClick={handleCopyCodeSnippet}
+                  title="Copy TypeScript snippet to paste into src/data/projects.ts"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.05] hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:text-white transition"
+                >
+                  {copiedCode ? <Check size={13} className="text-emerald-400" /> : <FileCode size={13} />}
+                  <span>{copiedCode ? 'Code Copied!' : 'Copy Code for Git'}</span>
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 setTargetCatalogForUpload(activeCatalog === 'web-mobile' ? 'web-mobile' : 'graphics');
@@ -1127,12 +1195,22 @@ export const Portfolio: React.FC = () => {
                   type="file"
                   accept="image/*"
                   required
+                  disabled={isCompressing}
                   onChange={handleFileChange}
-                  className="w-full text-xs text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#FF4D00] file:text-white hover:file:bg-[#ff611e] cursor-pointer"
+                  className="w-full text-xs text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#FF4D00] file:text-white hover:file:bg-[#ff611e] cursor-pointer disabled:opacity-50"
                 />
-                {newImagePreview && (
+                {isCompressing && (
+                  <p className="mt-1 text-[11px] text-amber-400 animate-pulse flex items-center gap-1.5">
+                    <Database size={12} />
+                    <span>Compressing &amp; preparing high-res artwork for persistent storage...</span>
+                  </p>
+                )}
+                {newImagePreview && !isCompressing && (
                   <div className="mt-2 relative aspect-video rounded-xl overflow-hidden border border-white/20">
                     <img src={newImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-emerald-400 text-[10px] font-mono flex items-center gap-1">
+                      <Check size={10} /> Optimized for Permanent Storage
+                    </span>
                   </div>
                 )}
               </div>
