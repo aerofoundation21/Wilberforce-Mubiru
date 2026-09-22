@@ -9,7 +9,6 @@ import { INITIAL_PROJECTS } from '../data/projects';
 import { 
   Search, 
   Sparkles, 
-  Upload, 
   ChevronLeft, 
   ChevronRight, 
   Maximize2, 
@@ -21,24 +20,16 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  ExternalLink,
-  Download,
-  FileCode,
-  Check,
-  Database
+  ExternalLink
 } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
 import { 
-  compressImage, 
-  saveCustomUploads, 
   loadCustomUploads, 
-  saveImageOverride, 
   loadImageOverrides 
 } from '../utils/imageStorage';
 
 const GRAPHICS_CATEGORIES: GraphicsCategory[] = [
   'All Graphics',
-  'Logo Design & CorelDRAW',
   'Screen Printing',
   'DTF (Direct-to-Film)',
   'Heat Press Machine',
@@ -61,10 +52,8 @@ const WEB_MOBILE_CATEGORIES: WebMobileCategory[] = [
 export const Portfolio: React.FC = () => {
   const [customUploads, setCustomUploads] = useState<ProjectItem[]>([]);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
-  const [isCompressing, setIsCompressing] = useState<boolean>(false);
-  const [copiedCode, setCopiedCode] = useState<boolean>(false);
 
-  // Load persisted custom uploads and image overrides from IndexedDB
+  // Load any previously persisted custom uploads or image overrides from IndexedDB
   useEffect(() => {
     let isMounted = true;
     const initStorage = async () => {
@@ -87,17 +76,6 @@ export const Portfolio: React.FC = () => {
     };
   }, []);
 
-  const handleImageOverride = async (projectId: string, file: File) => {
-    try {
-      // Auto-compress large photos to prevent exceeding browser storage limits
-      const compressed = await compressImage(file, 1600, 0.84);
-      setImageOverrides((prev) => ({ ...prev, [projectId]: compressed }));
-      await saveImageOverride(projectId, compressed);
-    } catch (err) {
-      console.error('Failed to override image', err);
-    }
-  };
-
   // Merge INITIAL_PROJECTS with custom uploads (deduplicating by id and prioritizing user uploads)
   const allProjects = useMemo(() => {
     const projectMap = new Map<string, ProjectItem>();
@@ -109,13 +87,30 @@ export const Portfolio: React.FC = () => {
     for (const p of customUploads) {
       projectMap.set(p.id, p);
     }
-    // Apply standalone image overrides
-    return Array.from(projectMap.values()).map((p) => {
-      if (imageOverrides[p.id]) {
-        return { ...p, img: imageOverrides[p.id] };
-      }
-      return p;
-    });
+    // Apply standalone image overrides and filter out any AI-generated entries
+    return Array.from(projectMap.values())
+      .filter((p) => {
+        const lowerClient = (p.client || '').toLowerCase();
+        const lowerTitle = (p.title || '').toLowerCase();
+        // Discard AI-generated Luba Charles entries
+        if (
+          lowerClient.includes('luba') || 
+          lowerClient.includes('charles') || 
+          lowerTitle.includes('luba') || 
+          p.id === 'custom-1790054332860' ||
+          p.id === 'custom-1790054219338' ||
+          p.id === 'custom-1790054153736'
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p) => {
+        if (imageOverrides[p.id]) {
+          return { ...p, img: imageOverrides[p.id] };
+        }
+        return p;
+      });
   }, [customUploads, imageOverrides]);
 
   // Master Catalog Separation: 'graphics' vs 'web-mobile' vs 'both'
@@ -131,37 +126,23 @@ export const Portfolio: React.FC = () => {
   const [viewMode, setViewMode] = useState<'single' | 'cards'>('single');
   const [graphicsSingleIndex, setGraphicsSingleIndex] = useState<number>(0);
   const [webMobileSingleIndex, setWebMobileSingleIndex] = useState<number>(0);
-  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
 
   // Safe fallback image if original file path is still loading
   const getFallbackArtwork = (tag: string) => {
     if (tag.includes('Safety') || tag.includes('Heat Press') || tag.includes('Reflector')) {
-      return '/portfolio/makindye-safety-vests.jpg';
+      return '/portfolio/oxfam-ireland.jpg';
     }
     if (tag.includes('DTF')) {
-      return '/portfolio/ukaid-collection.jpg';
+      return '/portfolio/belgium-plan-international.jpg';
     }
     if (tag.includes('Screen Printing')) {
       return '/portfolio/tusimba-team-distribution.jpg';
-    }
-    if (tag.includes('CorelDRAW') || tag.includes('Logo')) {
-      return '/portfolio/makindye-coreldraw-prepress.jpg';
     }
     if (tag.includes('Vinyl')) {
       return '/portfolio/grassland-guardian-uganda.jpg';
     }
     return '/portfolio/oxfam-ireland.jpg';
   };
-
-  // New project upload form state
-  const [targetCatalogForUpload, setTargetCatalogForUpload] = useState<CatalogDomain>('graphics');
-  const [newTitle, setNewTitle] = useState('');
-  const [newClient, setNewClient] = useState('');
-  const [newTag, setNewTag] = useState<string>('Logo Design & CorelDRAW');
-  const [newCaption, setNewCaption] = useState('');
-  const [newDescription, setNewDescription] = useState('');
-  const [newTechnique, setNewTechnique] = useState('CorelDRAW Vector Logo Design & Prepress');
-  const [newImagePreview, setNewImagePreview] = useState<string>('');
 
   // Handle hash navigation to directly open the chosen catalog
   useEffect(() => {
@@ -209,18 +190,6 @@ export const Portfolio: React.FC = () => {
     const lowerCaption = (p.caption || '').toLowerCase();
     const combined = `${p.title.toLowerCase()} ${lowerTech} ${lowerDesc} ${lowerCaption} ${p.client.toLowerCase()}`;
 
-    if (cat === 'Logo Design & CorelDRAW') {
-      return (
-        p.tag === 'Logo Design & CorelDRAW' ||
-        combined.includes('coreldraw') ||
-        combined.includes('logo') ||
-        combined.includes('vector') ||
-        combined.includes('stole') ||
-        combined.includes('heraldic') ||
-        combined.includes('prepress') ||
-        combined.includes('graphic artist')
-      );
-    }
     if (cat === 'Screen Printing') {
       return (
         p.tag === 'Screen Printing' ||
@@ -247,7 +216,7 @@ export const Portfolio: React.FC = () => {
       );
     }
     if (cat === 'NGO Bulk Orders') {
-      return combined.includes('oxfam') || combined.includes('ukaid') || combined.includes('plan') || combined.includes('ireland') || combined.includes('ngo');
+      return combined.includes('oxfam') || combined.includes('plan') || combined.includes('belgium') || combined.includes('ireland') || combined.includes('ngo');
     }
     if (cat === 'Event Merch') {
       return combined.includes('run') || combined.includes('marathon') || combined.includes('event') || combined.includes('fundraising') || combined.includes('faith');
@@ -349,91 +318,6 @@ export const Portfolio: React.FC = () => {
   const currentWebMobileProject = filteredWebMobileProjects[webMobileSingleIndex] || filteredWebMobileProjects[0];
 
   // Handle local image file upload with automatic compression
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsCompressing(true);
-      try {
-        const compressed = await compressImage(file, 1400, 0.82);
-        setNewImagePreview(compressed);
-      } catch (err) {
-        console.error('Failed to compress image', err);
-      } finally {
-        setIsCompressing(false);
-      }
-    }
-  };
-
-  const handleAddNewProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim() || !newImagePreview) return;
-
-    const newProject: ProjectItem = {
-      id: `custom-${Date.now()}`,
-      title: newTitle.trim(),
-      client: newClient.trim() || (targetCatalogForUpload === 'graphics' ? 'Rogue Ventures Client' : 'Grin Mates Mobile'),
-      tag: newTag as any,
-      catalog: targetCatalogForUpload,
-      caption: newCaption.trim() || (targetCatalogForUpload === 'graphics' ? 'Custom DTF & Heat Press production' : 'Mobile application architecture'),
-      description: newDescription.trim() || (targetCatalogForUpload === 'graphics' ? 'Custom production order executed at Rogue Ventures.' : 'Engineered mobile application feature.'),
-      technique: newTechnique || (targetCatalogForUpload === 'graphics' ? 'Direct-to-Film (DTF) Transfer & Heat Press Machine' : 'Web & Mobile App Development'),
-      img: newImagePreview,
-      year: new Date().getFullYear().toString(),
-      volume: targetCatalogForUpload === 'graphics' ? 'Custom Run' : 'Production Build',
-      location: 'Kampala, Uganda'
-    };
-
-    const updated = [newProject, ...customUploads];
-    setCustomUploads(updated);
-    await saveCustomUploads(updated);
-
-    // Reset form
-    setNewTitle('');
-    setNewClient('');
-    setNewCaption('');
-    setNewDescription('');
-    setNewImagePreview('');
-    setShowUploadModal(false);
-  };
-
-  const handleDownloadBackup = () => {
-    const backupData = {
-      exportedAt: new Date().toISOString(),
-      customUploadsCount: customUploads.length,
-      customUploads,
-      imageOverrides
-    };
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wilberforce-portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleCopyCodeSnippet = () => {
-    if (customUploads.length === 0) return;
-    const tsCode = customUploads.map((p) => `  {
-    id: ${JSON.stringify(p.id)},
-    title: ${JSON.stringify(p.title)},
-    client: ${JSON.stringify(p.client)},
-    tag: ${JSON.stringify(p.tag)},
-    catalog: ${JSON.stringify(p.catalog)},
-    caption: ${JSON.stringify(p.caption)},
-    description: ${JSON.stringify(p.description)},
-    technique: ${JSON.stringify(p.technique)},
-    img: "/portfolio/${p.id}.jpg", // Place original image in public/portfolio/
-    year: ${JSON.stringify(p.year || '2025')},
-    volume: ${JSON.stringify(p.volume || '1')},
-    location: "Kampala, Uganda"
-  }`).join(',\n');
-
-    navigator.clipboard.writeText(`// Add these items to INITIAL_PROJECTS in src/data/projects.ts:\n${tsCode}`);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 3000);
-  };
-
   return (
     <section id="work" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24 border-t border-white/[0.08]">
       
@@ -452,37 +336,10 @@ export const Portfolio: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {customUploads.length > 0 && (
-              <>
-                <button
-                  onClick={handleDownloadBackup}
-                  title="Download a JSON backup of all your uploaded projects"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.05] hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:text-white transition"
-                >
-                  <Download size={13} />
-                  <span>Backup ({customUploads.length})</span>
-                </button>
-                <button
-                  onClick={handleCopyCodeSnippet}
-                  title="Copy TypeScript snippet to paste into src/data/projects.ts"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.05] hover:bg-white/10 px-3 py-2 text-xs font-semibold text-white/80 hover:text-white transition"
-                >
-                  {copiedCode ? <Check size={13} className="text-emerald-400" /> : <FileCode size={13} />}
-                  <span>{copiedCode ? 'Code Copied!' : 'Copy Code for Git'}</span>
-                </button>
-              </>
-            )}
-            <button
-              onClick={() => {
-                setTargetCatalogForUpload(activeCatalog === 'web-mobile' ? 'web-mobile' : 'graphics');
-                setShowUploadModal(true);
-              }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.05] hover:bg-white hover:text-black px-4 py-2 text-xs font-semibold text-white transition-all shadow-sm"
-            >
-              <Upload size={14} />
-              <span>Upload to Catalog</span>
-            </button>
+          <div className="flex items-center gap-2">
+            <span className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-medium text-white/70">
+              <span className="text-white font-bold">{rawGraphicsProjects.length + rawWebMobileProjects.length}</span> Verified Production Works
+            </span>
           </div>
         </div>
 
@@ -779,8 +636,14 @@ export const Portfolio: React.FC = () => {
                 </div>
               </div>
 
-              {/* Main Artwork Preview */}
-              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[620px] bg-neutral-950 flex items-center justify-center overflow-hidden group">
+              {/* Main Artwork Showcase - Spacious, uncropped, 100% visible */}
+              <div 
+                onClick={() => setSelectedProject(currentGraphicsProject)}
+                className="relative w-full min-h-[460px] sm:min-h-[560px] md:min-h-[660px] max-h-[800px] bg-[#080808] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-hidden group cursor-pointer"
+                title="Click to view detailed case study"
+              >
+                <div className="absolute inset-0 bg-radial from-white/[0.03] to-transparent pointer-events-none" />
+
                 <img
                   key={currentGraphicsProject.id}
                   src={currentGraphicsProject.img}
@@ -792,30 +655,56 @@ export const Portfolio: React.FC = () => {
                       target.src = fallback;
                     }
                   }}
-                  className="w-full h-full object-contain sm:object-cover transition duration-700 group-hover:scale-[1.02]"
+                  className="w-auto h-auto max-w-full max-h-[520px] sm:max-h-[620px] md:max-h-[700px] object-contain transition duration-500 group-hover:scale-[1.01] drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)]"
                 />
 
-                <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedProject(currentGraphicsProject)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/80 backdrop-blur-md hover:bg-white hover:text-black text-white text-xs font-semibold border border-white/20 transition shadow-xl"
-                  >
-                    <Eye size={14} /> Full Artwork Zoom &amp; Specs
-                  </button>
-                </div>
-
                 <button
-                  onClick={() => setGraphicsSingleIndex((prev) => (prev - 1 + filteredGraphicsProjects.length) % filteredGraphicsProjects.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-[#FF4D00] hover:border-[#FF4D00] transition shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGraphicsSingleIndex((prev) => (prev - 1 + filteredGraphicsProjects.length) % filteredGraphicsProjects.length);
+                  }}
+                  className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-[#FF4D00] hover:border-[#FF4D00] transition shadow-lg z-10"
+                  aria-label="Previous artwork"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
-                  onClick={() => setGraphicsSingleIndex((prev) => (prev + 1) % filteredGraphicsProjects.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-[#FF4D00] hover:border-[#FF4D00] transition shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGraphicsSingleIndex((prev) => (prev + 1) % filteredGraphicsProjects.length);
+                  }}
+                  className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-[#FF4D00] hover:border-[#FF4D00] transition shadow-lg z-10"
+                  aria-label="Next artwork"
                 >
                   <ChevronRight size={20} />
                 </button>
+              </div>
+
+              {/* Quick horizontal thumbnail filmstrip */}
+              <div className="flex items-center gap-2 overflow-x-auto py-3 px-4 sm:px-6 bg-black/60 border-t border-white/[0.06] scrollbar-thin">
+                {filteredGraphicsProjects.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setGraphicsSingleIndex(idx)}
+                    className={`shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${
+                      idx === graphicsSingleIndex
+                        ? 'border-[#FF4D00] scale-105 ring-2 ring-[#FF4D00]/40 opacity-100'
+                        : 'border-white/10 opacity-50 hover:opacity-90 hover:border-white/30'
+                    } w-14 h-14 sm:w-16 sm:h-16 bg-neutral-900 flex items-center justify-center p-0.5`}
+                    title={`${p.title} (${p.client})`}
+                  >
+                    <img
+                      src={p.img}
+                      alt={p.title}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fallback = getFallbackArtwork(p.tag);
+                        if (target.src !== fallback) target.src = fallback;
+                      }}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </button>
+                ))}
               </div>
 
               {/* Caption & Metadata Bar */}
@@ -827,9 +716,9 @@ export const Portfolio: React.FC = () => {
                 <div className="flex items-center gap-3 shrink-0">
                   <button
                     onClick={() => setSelectedProject(currentGraphicsProject)}
-                    className="inline-flex items-center gap-1.5 text-xs text-[#FF4D00] font-semibold hover:underline"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/20 bg-white/[0.05] hover:bg-[#FF4D00] hover:text-white hover:border-[#FF4D00] text-xs font-semibold text-white transition shadow-sm"
                   >
-                    <span>View Specifications &amp; Override Image</span>
+                    <span>View Case Study &amp; Technical Notes</span>
                     <ArrowRight size={13} />
                   </button>
                 </div>
@@ -1001,36 +890,59 @@ export const Portfolio: React.FC = () => {
                 </div>
               </div>
 
-              {/* Main Mobile Screen Preview */}
-              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[620px] bg-[#0A0A0A] flex items-center justify-center overflow-hidden group p-4 sm:p-6">
+              {/* Main Mobile Screen Showcase - Spacious, uncropped, 100% visible */}
+              <div 
+                onClick={() => setSelectedProject(currentWebMobileProject)}
+                className="relative w-full min-h-[460px] sm:min-h-[560px] md:min-h-[660px] max-h-[800px] bg-[#080808] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-hidden group cursor-pointer"
+                title="Click to view software architecture & case study"
+              >
+                <div className="absolute inset-0 bg-radial from-emerald-500/[0.04] to-transparent pointer-events-none" />
+
                 <img
                   key={currentWebMobileProject.id}
                   src={currentWebMobileProject.img}
                   alt={currentWebMobileProject.title}
-                  className="w-auto h-full max-h-[580px] object-contain transition duration-700 group-hover:scale-[1.02] drop-shadow-2xl"
+                  className="w-auto h-auto max-w-full max-h-[520px] sm:max-h-[620px] md:max-h-[700px] object-contain transition duration-500 group-hover:scale-[1.01] drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)]"
                 />
 
-                <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedProject(currentWebMobileProject)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/80 backdrop-blur-md hover:bg-emerald-400 hover:text-black text-white text-xs font-semibold border border-emerald-500/30 transition shadow-xl"
-                  >
-                    <Eye size={14} /> Screen Architecture &amp; Code Specs
-                  </button>
-                </div>
-
                 <button
-                  onClick={() => setWebMobileSingleIndex((prev) => (prev - 1 + filteredWebMobileProjects.length) % filteredWebMobileProjects.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWebMobileSingleIndex((prev) => (prev - 1 + filteredWebMobileProjects.length) % filteredWebMobileProjects.length);
+                  }}
+                  className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition shadow-lg z-10"
+                  aria-label="Previous screen"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
-                  onClick={() => setWebMobileSingleIndex((prev) => (prev + 1) % filteredWebMobileProjects.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition shadow-lg"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWebMobileSingleIndex((prev) => (prev + 1) % filteredWebMobileProjects.length);
+                  }}
+                  className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-70 hover:opacity-100 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition shadow-lg z-10"
+                  aria-label="Next screen"
                 >
                   <ChevronRight size={20} />
                 </button>
+              </div>
+
+              {/* Quick horizontal thumbnail filmstrip */}
+              <div className="flex items-center gap-2 overflow-x-auto py-3 px-4 sm:px-6 bg-black/60 border-t border-white/[0.06] scrollbar-thin">
+                {filteredWebMobileProjects.map((p, idx) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setWebMobileSingleIndex(idx)}
+                    className={`shrink-0 rounded-xl overflow-hidden border transition-all duration-200 ${
+                      idx === webMobileSingleIndex
+                        ? 'border-emerald-400 scale-105 ring-2 ring-emerald-400/40 opacity-100'
+                        : 'border-white/10 opacity-50 hover:opacity-90 hover:border-white/30'
+                    } w-14 h-14 sm:w-16 sm:h-16 bg-neutral-900 flex items-center justify-center p-1`}
+                    title={`${p.title} (${p.client})`}
+                  >
+                    <img src={p.img} alt={p.title} className="w-full h-full object-contain rounded-lg" />
+                  </button>
+                ))}
               </div>
 
               {/* Caption & Metadata Bar */}
@@ -1040,12 +952,19 @@ export const Portfolio: React.FC = () => {
                   <p className="text-xs text-white/60 mt-1 max-w-2xl">{currentWebMobileProject.caption}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => setSelectedProject(currentWebMobileProject)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500 hover:text-black text-xs font-semibold text-emerald-400 transition shadow-sm"
+                  >
+                    <span>View Screen Specs &amp; Architecture</span>
+                    <ArrowRight size={13} />
+                  </button>
                   <a
                     href="#experience"
                     className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-semibold hover:underline"
                   >
-                    <span>Open Interactive Pixel 9 Simulator</span>
-                    <ArrowRight size={13} />
+                    <span>Simulator</span>
+                    <ExternalLink size={12} />
                   </a>
                 </div>
               </div>
@@ -1101,194 +1020,11 @@ export const Portfolio: React.FC = () => {
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* UPLOAD PROJECT MODAL                                                      */}
-      {/* ========================================================================= */}
-      {showUploadModal && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
-          onClick={() => setShowUploadModal(false)}
-        >
-          <div
-            className="bg-[#141414] border border-white/10 rounded-3xl max-w-lg w-full p-6 sm:p-8 text-white relative shadow-2xl my-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-bold tracking-tight mb-1">Upload Work to Catalog</h3>
-            <p className="text-xs text-white/60 mb-5">
-              Choose the appropriate catalog to ensure your work is properly organized.
-            </p>
-
-            <form onSubmit={handleAddNewProject} className="space-y-4 text-xs">
-              {/* Target Catalog Selector */}
-              <div>
-                <label className="block text-white/70 mb-1 font-medium">Target Catalog *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTargetCatalogForUpload('graphics');
-                      setNewTag('Logo Design & CorelDRAW');
-                      setNewTechnique('CorelDRAW Vector Logo Design & Prepress');
-                    }}
-                    className={`h-10 rounded-xl px-3 text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
-                      targetCatalogForUpload === 'graphics'
-                        ? 'bg-[#FF4D00] text-white border-[#FF4D00]'
-                        : 'bg-white/[0.04] text-white/60 border-white/10 hover:text-white'
-                    }`}
-                  >
-                    <PenTool size={13} />
-                    <span>Graphics &amp; Print</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTargetCatalogForUpload('web-mobile');
-                      setNewTag('Web3 & MetaMask Auth');
-                      setNewTechnique('Web & Mobile App Development');
-                    }}
-                    className={`h-10 rounded-xl px-3 text-xs font-semibold border flex items-center justify-center gap-1.5 transition ${
-                      targetCatalogForUpload === 'web-mobile'
-                        ? 'bg-emerald-500 text-black border-emerald-500 font-bold'
-                        : 'bg-white/[0.04] text-white/60 border-white/10 hover:text-white'
-                    }`}
-                  >
-                    <Smartphone size={13} />
-                    <span>Web &amp; Mobile App</span>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white/70 mb-1 font-medium">Project Title *</label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder={
-                    targetCatalogForUpload === 'graphics'
-                      ? 'e.g. UKaid DTF Heat Press Tees'
-                      : 'e.g. Grin Mates Web3 Wallet Flow'
-                  }
-                  className="w-full h-10 px-3 rounded-xl bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:border-[#FF4D00]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-white/70 mb-1 font-medium">Client / Org</label>
-                  <input
-                    type="text"
-                    value={newClient}
-                    onChange={(e) => setNewClient(e.target.value)}
-                    placeholder={targetCatalogForUpload === 'graphics' ? 'e.g. OXFAM / Plan Int.' : 'e.g. Grin Mates'}
-                    className="w-full h-10 px-3 rounded-xl bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:border-[#FF4D00]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/70 mb-1 font-medium">Category Tag</label>
-                  <select
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    className="w-full h-10 px-2 rounded-xl bg-[#1C1C1E] border border-white/10 text-white focus:outline-none focus:border-[#FF4D00]"
-                  >
-                    {targetCatalogForUpload === 'graphics' ? (
-                      GRAPHICS_CATEGORIES.filter((c) => c !== 'All Graphics').map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))
-                    ) : (
-                      WEB_MOBILE_CATEGORIES.filter((c) => c !== 'All Web & Mobile').map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))
-                    )}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-white/70 mb-1 font-medium">Technique / Technologies</label>
-                <input
-                  type="text"
-                  value={newTechnique}
-                  onChange={(e) => setNewTechnique(e.target.value)}
-                  placeholder={
-                    targetCatalogForUpload === 'graphics'
-                      ? 'e.g. Direct-to-Film (DTF) & Pneumatic Heat Press'
-                      : 'e.g. Kotlin, MetaMask SDK & Celo Smart Contracts'
-                  }
-                  className="w-full h-10 px-3 rounded-xl bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:border-[#FF4D00]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white/70 mb-1 font-medium">Short Caption</label>
-                <input
-                  type="text"
-                  value={newCaption}
-                  onChange={(e) => setNewCaption(e.target.value)}
-                  placeholder="Short one-line description of the work"
-                  className="w-full h-10 px-3 rounded-xl bg-white/[0.06] border border-white/10 text-white focus:outline-none focus:border-[#FF4D00]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white/70 mb-1 font-medium">Upload Image File *</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  required
-                  disabled={isCompressing}
-                  onChange={handleFileChange}
-                  className="w-full text-xs text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#FF4D00] file:text-white hover:file:bg-[#ff611e] cursor-pointer disabled:opacity-50"
-                />
-                {isCompressing && (
-                  <p className="mt-1 text-[11px] text-amber-400 animate-pulse flex items-center gap-1.5">
-                    <Database size={12} />
-                    <span>Compressing &amp; preparing high-res artwork for persistent storage...</span>
-                  </p>
-                )}
-                {newImagePreview && !isCompressing && (
-                  <div className="mt-2 relative aspect-video rounded-xl overflow-hidden border border-white/20">
-                    <img src={newImagePreview} alt="Preview" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-emerald-400 text-[10px] font-mono flex items-center gap-1">
-                      <Check size={10} /> Optimized for Permanent Storage
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-2 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="flex-1 h-10 rounded-full border border-white/20 text-white/80 hover:bg-white/10"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`flex-1 h-10 rounded-full font-bold text-white transition ${
-                    targetCatalogForUpload === 'graphics'
-                      ? 'bg-[#FF4D00] hover:bg-[#ff611e]'
-                      : 'bg-emerald-500 text-black hover:bg-emerald-400'
-                  }`}
-                >
-                  Save to {targetCatalogForUpload === 'graphics' ? 'Graphics' : 'Web & Mobile'} Catalog
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Case Study Modal with Original Image Replacement feature */}
+      {/* Case Study Modal */}
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
           onClose={() => setSelectedProject(null)}
-          onImageOverride={handleImageOverride}
         />
       )}
     </section>

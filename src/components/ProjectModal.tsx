@@ -1,15 +1,14 @@
 import React from 'react';
-import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink, Upload } from 'lucide-react';
+import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink } from 'lucide-react';
 import { ProjectItem } from '../types';
 import { WHATSAPP_NUMBER } from '../data/projects';
 
 interface ProjectModalProps {
   project: ProjectItem | null;
   onClose: () => void;
-  onImageOverride?: (projectId: string, file: File) => void;
 }
 
-export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onImageOverride }) => {
+export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
   if (!project) return null;
 
   // Pre-fill message for WhatsApp
@@ -34,14 +33,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, on
             alt={project.title}
             onError={(e) => {
               const target = e.currentTarget;
-              const fallback = project.tag.includes('CorelDRAW') || project.tag.includes('Logo')
-                ? '/portfolio/makindye-coreldraw-prepress.jpg'
-                : project.tag.includes('Screen Printing')
+              const fallback = project.tag.includes('Screen Printing')
                 ? '/portfolio/tusimba-team-distribution.jpg'
                 : project.tag.includes('DTF')
-                ? '/portfolio/ukaid-collection.jpg'
-                : project.tag.includes('Heat Press') || project.tag.includes('Reflector')
-                ? '/portfolio/makindye-safety-vests.jpg'
+                ? '/portfolio/belgium-plan-international.jpg'
+                : project.tag.includes('Heat Press') || project.tag.includes('Reflector') || project.tag.includes('Safety')
+                ? '/portfolio/oxfam-ireland.jpg'
                 : '/portfolio/oxfam-ireland.jpg';
               if (target.src !== fallback) {
                 target.src = fallback;
@@ -61,23 +58,6 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, on
             <span className="px-3 py-1 rounded-full bg-[#FF4D00] text-black text-xs font-bold uppercase tracking-wider shadow-lg">
               {project.tag}
             </span>
-            {onImageOverride && (
-              <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/80 hover:bg-white hover:text-black text-white/90 text-xs font-semibold border border-white/20 backdrop-blur-md transition shadow-lg">
-                <Upload size={13} />
-                <span>Upload Original Photo</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      onImageOverride(project.id, file);
-                    }
-                  }}
-                />
-              </label>
-            )}
           </div>
         </div>
 

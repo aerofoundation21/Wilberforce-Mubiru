@@ -107,7 +107,7 @@ export const Hero: React.FC = () => {
               Trusted by:
             </span>
             <div className="flex flex-wrap gap-2">
-              {['OXFAM', 'UKaid', 'Ireland', 'Belgium', 'Plan Int.', 'Nivana', 'Dr. Kasenene'].map((client) => (
+              {['OXFAM', 'Plan Int.', 'Belgium Devt', 'Ireland', 'Tusimba Run', 'Grassland Guardian', 'Nivana'].map((client) => (
                 <span
                   key={client}
                   className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-white/80 text-[11px] font-medium"

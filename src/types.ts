@@ -2,7 +2,6 @@ export type CatalogDomain = 'graphics' | 'web-mobile';
 
 export type GraphicsCategory = 
   | 'All Graphics'
-  | 'Logo Design & CorelDRAW'
   | 'Screen Printing'
   | 'DTF (Direct-to-Film)'
   | 'Heat Press Machine'
@@ -23,7 +22,6 @@ export type WebMobileCategory =
 export type ProjectCategory = 
   | 'All'
   | 'Web & Mobile App Development'
-  | 'Logo Design & CorelDRAW'
   | 'Screen Printing'
   | 'DTF (Direct-to-Film)'
   | 'Heat Press Machine'
