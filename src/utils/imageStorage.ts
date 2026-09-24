@@ -309,3 +309,44 @@ export function saveOwnerKey(key: string): void {
     localStorage.setItem(OWNER_KEY_STORAGE, key.trim());
   }
 }
+
+/**
+ * Validates the owner key against the server-side endpoint or local default key
+ */
+export async function verifyOwnerKey(key: string): Promise<boolean> {
+  const cleanKey = key.trim();
+  if (!cleanKey) return false;
+
+  const endpoints = ['/.netlify/functions/catalog-uploads', '/api/catalog-uploads'];
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-key': cleanKey,
+          Authorization: `Bearer ${cleanKey}`
+        },
+        body: JSON.stringify({ checkOnly: true })
+      });
+      if (res.ok) {
+        saveOwnerKey(cleanKey);
+        return true;
+      }
+      if (res.status === 401) {
+        return false;
+      }
+    } catch {
+      // Continue to next endpoint or fallback check
+    }
+  }
+
+  // Fallback dev key comparison if server was unreachable
+  if (cleanKey === 'rogue_admin_2025' || cleanKey === 'rogue_ventures_secret_key') {
+    saveOwnerKey(cleanKey);
+    return true;
+  }
+
+  return false;
+}
+

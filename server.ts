@@ -90,6 +90,10 @@ async function startServer() {
       });
     }
 
+    if (req.body?.checkOnly) {
+      return res.status(200).json({ valid: true, message: 'Owner key authenticated' });
+    }
+
     const {
       title,
       client,

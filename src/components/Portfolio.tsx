@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   ProjectItem, 
   CatalogDomain, 
@@ -25,10 +25,12 @@ import {
   Plus,
   RefreshCw,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Edit3
 } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
 import { ArtworkUploadModal } from './ArtworkUploadModal';
+import { HiddenAdminCatalogForm } from './HiddenAdminCatalogForm';
 import { 
   loadCustomUploads, 
   loadImageOverrides,
@@ -64,6 +66,8 @@ export const Portfolio: React.FC = () => {
   const [storageError, setStorageError] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const adminFormRef = useRef<HTMLDivElement>(null);
 
   // Sync storage from server-side store (Netlify Blobs / API)
   const refreshCatalogStorage = async () => {
@@ -119,19 +123,15 @@ export const Portfolio: React.FC = () => {
     for (const p of customUploads) {
       projectMap.set(p.id, p);
     }
-    // Apply standalone image overrides and filter out any AI-generated entries
+    // Apply standalone image overrides
     return Array.from(projectMap.values())
       .filter((p) => {
         const lowerClient = (p.client || '').toLowerCase();
         const lowerTitle = (p.title || '').toLowerCase();
-        // Discard AI-generated Luba Charles entries
         if (
           lowerClient.includes('luba') || 
           lowerClient.includes('charles') || 
-          lowerTitle.includes('luba') || 
-          p.id === 'custom-1790054332860' ||
-          p.id === 'custom-1790054219338' ||
-          p.id === 'custom-1790054153736'
+          lowerTitle.includes('luba')
         ) {
           return false;
         }
@@ -162,18 +162,18 @@ export const Portfolio: React.FC = () => {
   // Safe fallback image if original file path is still loading
   const getFallbackArtwork = (tag: string) => {
     if (tag.includes('Safety') || tag.includes('Heat Press') || tag.includes('Reflector')) {
-      return '/portfolio/oxfam-ireland.jpg';
+      return '/portfolio/gsb-reflective-vests.svg';
     }
     if (tag.includes('DTF')) {
-      return '/portfolio/belgium-plan-international.jpg';
+      return '/portfolio/gsb-promotional-tshirts.svg';
     }
     if (tag.includes('Screen Printing')) {
-      return '/portfolio/tusimba-team-distribution.jpg';
+      return '/portfolio/school-sports-uniforms.svg';
     }
     if (tag.includes('Vinyl')) {
-      return '/portfolio/grassland-guardian-uganda.jpg';
+      return '/portfolio/weatherproof-vinyl-decals.svg';
     }
-    return '/portfolio/oxfam-ireland.jpg';
+    return '/portfolio/gsb-reflective-vests.svg';
   };
 
   // Handle hash navigation to directly open the chosen catalog
@@ -561,6 +561,20 @@ export const Portfolio: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
+      {/* HIDDEN STUDIO OWNER ADMIN FORM (UNLOCKED ONLY WITH SPECIFIC PASSKEY)       */}
+      {/* ========================================================================= */}
+      <div ref={adminFormRef} id="studio-admin-portal" className="scroll-mt-24">
+        <HiddenAdminCatalogForm
+          allProjects={allProjects}
+          onUploadSuccess={handleUploadSuccess}
+          onRefresh={refreshCatalogStorage}
+          isLoadingStorage={isLoadingStorage}
+          selectedEditProject={editingProject}
+          onClearEditProject={() => setEditingProject(null)}
+        />
+      </div>
+
+      {/* ========================================================================= */}
       {/* CATALOG 1: GRAPHICS DESIGN & ARTIST CATALOG                               */}
       {/* ========================================================================= */}
       {(activeCatalog === 'graphics' || activeCatalog === 'both') && (
@@ -583,12 +597,14 @@ export const Portfolio: React.FC = () => {
               <div className="text-right shrink-0 flex flex-col md:items-end gap-3">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsUploadModalOpen(true)}
+                    onClick={() => {
+                      adminFormRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF4D00] hover:bg-[#ff5d1a] text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-[#FF4D00]/25 transition hover:scale-[1.02] cursor-pointer"
-                    title="Add new authentic production proof to live catalog"
+                    title="Upload new project images & titles to Netlify Blobs storage"
                   >
                     <Plus size={15} />
-                    <span>Upload Proof</span>
+                    <span>Upload Proof (Admin)</span>
                   </button>
 
                   <button
@@ -785,7 +801,19 @@ export const Portfolio: React.FC = () => {
                   <h4 className="text-lg font-bold text-white tracking-tight">{currentGraphicsProject.title}</h4>
                   <p className="text-xs text-white/60 mt-1 max-w-2xl">{currentGraphicsProject.caption}</p>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingProject(currentGraphicsProject);
+                      adminFormRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-white/20 bg-white/[0.05] hover:bg-[#FF4D00]/20 hover:border-[#FF4D00]/50 text-xs font-semibold text-white/80 hover:text-white transition shadow-sm cursor-pointer"
+                    title="Edit project details or upload replacement photo in Admin Form"
+                  >
+                    <Edit3 size={13} className="text-[#FF4D00]" />
+                    <span>Edit / Replace Photo</span>
+                  </button>
                   <button
                     onClick={() => setSelectedProject(currentGraphicsProject)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-white/20 bg-white/[0.05] hover:bg-[#FF4D00] hover:text-white hover:border-[#FF4D00] text-xs font-semibold text-white transition shadow-sm"
@@ -841,10 +869,24 @@ export const Portfolio: React.FC = () => {
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
-                      <span className="text-[#FF4D00] font-medium truncate max-w-[200px]">
+                      <span className="text-[#FF4D00] font-medium truncate max-w-[140px]">
                         {project.technique || 'DTF & Heat Press'}
                       </span>
-                      <span className="text-white/40 group-hover:text-white transition">Details →</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingProject(project);
+                            adminFormRef.current?.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                          className="px-2.5 py-1 rounded-md bg-white/[0.06] hover:bg-[#FF4D00]/20 text-white/70 hover:text-white border border-white/10 transition cursor-pointer text-[10px] font-medium"
+                          title="Replace photo or update title in Admin Form"
+                        >
+                          Replace Photo
+                        </button>
+                        <span className="text-white/40 group-hover:text-white transition">Details →</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1107,6 +1149,11 @@ export const Portfolio: React.FC = () => {
           onClose={() => setSelectedProject(null)}
           isCustomUpload={customUploads.some((u) => u.id === selectedProject.id) || selectedProject.id.startsWith('custom-')}
           onDelete={handleDeleteCustom}
+          onEdit={(proj) => {
+            setSelectedProject(null);
+            setEditingProject(proj);
+            adminFormRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }}
         />
       )}
 

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="100%" height="100%">
+  <defs>
+    <linearGradient id="apronCanvas" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="50%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="reflectiveTape" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e2e8f0" />
+      <stop offset="50%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <filter id="apronShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#050a12" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect width="800" height="1000" fill="#0f172a" />
+
+  <g transform="translate(60, 40)">
+    <rect width="680" height="48" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+    <circle cx="28" cy="24" r="7" fill="#f97316" />
+    <text x="46" y="29" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="1">ROGUE VENTURES • HEAVY INDUSTRIAL SAFETY WEAR PROOF</text>
+    <text x="660" y="29" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="end">BATCH: MEMD-APR-300U</text>
+  </g>
+
+  <!-- Industrial Apron Mockup -->
+  <g filter="url(#apronShadow)" transform="translate(180, 130)">
+    <!-- Neck Strap -->
+    <path d="M 160 50 C 160 -10 280 -10 280 50" fill="none" stroke="#475569" stroke-width="14" stroke-linecap="round" />
+    
+    <!-- Heavy Canvas Apron Body -->
+    <polygon points="150,50 290,50 380,240 380,720 60,720 60,240" fill="url(#apronCanvas)" stroke="#475569" stroke-width="3" />
+
+    <!-- Waist Tie Straps -->
+    <line x1="60" y1="240" x2="-20" y2="280" stroke="#475569" stroke-width="12" stroke-linecap="round" />
+    <line x1="380" y1="240" x2="460" y2="280" stroke="#475569" stroke-width="12" stroke-linecap="round" />
+
+    <!-- High-Vis 3M Reflective Safety Band Across Waist -->
+    <rect x="62" y="320" width="316" height="45" fill="url(#reflectiveTape)" stroke="#94a3b8" stroke-width="2" />
+    <!-- Fluorescent Orange Border on Tape -->
+    <rect x="62" y="315" width="316" height="5" fill="#f97316" />
+    <rect x="62" y="365" width="316" height="5" fill="#f97316" />
+
+    <!-- Lower Reflective Safety Band -->
+    <rect x="62" y="580" width="316" height="45" fill="url(#reflectiveTape)" stroke="#94a3b8" stroke-width="2" />
+    <rect x="62" y="575" width="316" height="5" fill="#f97316" />
+    <rect x="62" y="625" width="316" height="5" fill="#f97316" />
+
+    <!-- Chest Brand Print: Ministry of Energy & Mineral Development -->
+    <g transform="translate(130, 90)">
+      <rect width="180" height="110" rx="8" fill="#0f172a" stroke="#f97316" stroke-width="2.5" />
+      <!-- Flame & Energy Icon -->
+      <circle cx="90" cy="35" r="22" fill="#f97316" />
+      <path d="M 90 20 C 85 30 75 35 90 50 C 105 35 95 30 90 20 Z" fill="#facc15" />
+
+      <text x="90" y="72" fill="#ffffff" font-family="system-ui, sans-serif" font-size="11" font-weight="900" letter-spacing="1" text-anchor="middle">MINISTRY OF ENERGY</text>
+      <text x="90" y="86" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" letter-spacing="0.5" text-anchor="middle">&amp; MINERAL DEVELOPMENT</text>
+      <text x="90" y="100" fill="#facc15" font-family="system-ui, sans-serif" font-size="8" font-weight="800" text-anchor="middle">LABORATORY SAFETY DIVISION</text>
+    </g>
+
+    <!-- Heavy Duty Workshop Tool Pocket -->
+    <g transform="translate(120, 390)">
+      <rect width="200" height="150" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+      <line x1="100" y1="0" x2="100" y2="150" stroke="#64748b" stroke-width="2" stroke-dasharray="3 3" />
+      <text x="50" y="75" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="middle">GAUGE</text>
+      <text x="150" y="75" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" font-weight="700" text-anchor="middle">INSPECTION</text>
+    </g>
+  </g>
+
+  <!-- Production Specs Footer -->
+  <g transform="translate(60, 880)">
+    <rect width="680" height="85" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+    <text x="24" y="28" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="14" font-weight="700">PROJECT: MINISTRY OF ENERGY INDUSTRIAL SAFETY APRONS</text>
+    <text x="24" y="48" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11.5">Client: Ministry of Energy &amp; Mineral Development • Technique: Heavy Textile Screen Printing &amp; Chemical Curing</text>
+    <text x="24" y="68" fill="#fb923c" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Material: Heavyweight Waterproof Duck Canvas, High-Adhesion Epoxies • 300 Safety Aprons</text>
+    <rect x="530" y="20" width="130" height="45" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="1.5" />
+    <text x="595" y="47" fill="#22c55e" font-family="system-ui, sans-serif" font-size="12" font-weight="800" text-anchor="middle">VERIFIED PROOF</text>
+  </g>
+</svg>

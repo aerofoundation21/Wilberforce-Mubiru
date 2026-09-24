@@ -79,6 +79,13 @@ export default async (req: Request, _context: Context) => {
       }
 
       const body = await req.json();
+      if (body?.checkOnly) {
+        return new Response(
+          JSON.stringify({ valid: true, message: "Owner key authenticated" }),
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
       const {
         title,
         client,

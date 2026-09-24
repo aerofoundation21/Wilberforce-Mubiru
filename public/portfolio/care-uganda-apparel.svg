@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="100%" height="100%">
+  <defs>
+    <linearGradient id="careOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ea580c" />
+      <stop offset="50%" stop-color="#c2410c" />
+      <stop offset="100%" stop-color="#9a3412" />
+    </linearGradient>
+    <filter id="apparelShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#050a12" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <rect width="800" height="1000" fill="#0f172a" />
+
+  <g transform="translate(60, 40)">
+    <rect width="680" height="48" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+    <circle cx="28" cy="24" r="7" fill="#ea580c" />
+    <text x="46" y="29" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="1">ROGUE VENTURES • HUMANITARIAN OUTREACH APPAREL PROOF</text>
+    <text x="660" y="29" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="end">BATCH: CARE-UG-750U</text>
+  </g>
+
+  <!-- Clothes Hanger -->
+  <g id="hanger" stroke="#64748b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M 400 130 C 400 95 435 80 435 55 C 435 35 418 22 398 22 C 378 22 365 37 368 56" stroke-width="9" />
+    <path d="M 400 130 L 190 205 C 175 210 180 220 195 218 L 605 218 C 620 220 625 210 610 205 Z" fill="#334155" />
+  </g>
+
+  <!-- Orange Outreach Staff Tee -->
+  <g filter="url(#apparelShadow)">
+    <path d="M 310 200 
+             C 350 240 450 240 490 200 
+             L 630 250 
+             L 730 380 
+             L 640 450 
+             L 590 380 
+             L 600 840 
+             L 200 840 
+             L 210 380 
+             L 160 450 
+             L 70 380 
+             L 170 250 
+             Z" 
+          fill="url(#careOrange)" 
+          stroke="#7c2d12" 
+          stroke-width="2" />
+
+    <path d="M 310 200 C 350 245 450 245 490 200 C 460 215 340 215 310 200 Z" fill="#7c2d12" />
+    <path d="M 320 200 C 355 235 445 235 480 200" fill="none" stroke="#ffffff" stroke-width="3" />
+
+    <!-- Chest Artwork: CARE International Emblem & Text -->
+    <g transform="translate(250, 330)">
+      <rect width="300" height="200" rx="16" fill="#ffffff" stroke="#0f172a" stroke-width="3" />
+      
+      <!-- CARE Hands & Globe Insignia -->
+      <circle cx="150" cy="55" r="30" fill="#ea580c" />
+      <path d="M 135 60 C 145 45 155 45 165 60" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+      
+      <text x="150" y="120" fill="#ea580c" font-family="system-ui, sans-serif" font-size="34" font-weight="900" letter-spacing="3" text-anchor="middle">care</text>
+      <text x="150" y="145" fill="#0f172a" font-family="system-ui, sans-serif" font-size="14" font-weight="800" letter-spacing="2" text-anchor="middle">UGANDA</text>
+      
+      <rect x="25" y="158" width="250" height="24" rx="4" fill="#0f172a" />
+      <text x="150" y="174" fill="#ffffff" font-family="system-ui, sans-serif" font-size="10" font-weight="800" letter-spacing="1" text-anchor="middle">COMMUNITY OUTREACH TEAM</text>
+    </g>
+  </g>
+
+  <!-- Production Specs Footer -->
+  <g transform="translate(60, 880)">
+    <rect width="680" height="85" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1.5" />
+    <text x="24" y="28" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="14" font-weight="700">PROJECT: CARE UGANDA COMMUNITY OUTREACH APPAREL</text>
+    <text x="24" y="48" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11.5">Client: CARE International in Uganda • Technique: Dual-Pass DTF Heat Press Transfer &amp; Wash-Fast Curing</text>
+    <text x="24" y="68" fill="#fb923c" font-family="system-ui, sans-serif" font-size="11" font-weight="600">Material: 160 GSM Combed Bio-Washed Cotton • 750 NGO Staff Tees Delivered</text>
+    <rect x="530" y="20" width="130" height="45" rx="6" fill="#0f172a" stroke="#22c55e" stroke-width="1.5" />
+    <text x="595" y="47" fill="#22c55e" font-family="system-ui, sans-serif" font-size="12" font-weight="800" text-anchor="middle">VERIFIED PROOF</text>
+  </g>
+</svg>

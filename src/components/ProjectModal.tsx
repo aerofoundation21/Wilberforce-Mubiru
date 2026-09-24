@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink, Trash2, Loader2 } from 'lucide-react';
+import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink, Trash2, Loader2, Edit3 } from 'lucide-react';
 import { ProjectItem } from '../types';
 import { WHATSAPP_NUMBER } from '../data/projects';
 
@@ -7,6 +7,7 @@ interface ProjectModalProps {
   project: ProjectItem | null;
   onClose: () => void;
   onDelete?: (id: string) => Promise<void> | void;
+  onEdit?: (project: ProjectItem) => void;
   isCustomUpload?: boolean;
 }
 
@@ -14,6 +15,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   project, 
   onClose,
   onDelete,
+  onEdit,
   isCustomUpload = false
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -175,9 +177,23 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           </div>
 
           {/* Footer note & Owner Actions */}
-          <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-white/40">
+          <div className="mt-6 pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs text-white/40">
             <div className="flex items-center gap-3">
               <span>Rogue Ventures • Production Archive</span>
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onEdit(project);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.08] hover:bg-[#FF4D00]/20 hover:border-[#FF4D00]/40 text-white/80 hover:text-white border border-white/10 transition cursor-pointer text-xs font-semibold"
+                  title="Update title, description or upload replacement photo in Admin Form"
+                >
+                  <Edit3 size={12} className="text-[#FF4D00]" />
+                  <span>Edit in Admin Form</span>
+                </button>
+              )}
               {onDelete && isCustomUpload && (
                 <button
                   type="button"
