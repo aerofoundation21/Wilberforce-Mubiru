@@ -1,13 +1,14 @@
-// Utility for compressing images and storing them reliably in IndexedDB & localStorage
+// Utility for server-side catalog persistence (Netlify Functions & fullstack API) with IndexedDB/localStorage offline fallback
+import { ProjectItem } from '../types';
 
 const DB_NAME = 'RogueVenturesCatalogDB';
 const DB_VERSION = 1;
 const STORE_UPLOADS = 'custom_uploads';
-const STORE_OVERRIDES = 'image_overrides';
+const OWNER_KEY_STORAGE = 'rv_catalog_owner_passkey';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (!window.indexedDB) {
+    if (typeof window === 'undefined' || !window.indexedDB) {
       reject(new Error('IndexedDB not supported'));
       return;
     }
@@ -17,9 +18,6 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_UPLOADS)) {
         db.createObjectStore(STORE_UPLOADS, { keyPath: 'id' });
       }
-      if (!db.objectStoreNames.contains(STORE_OVERRIDES)) {
-        db.createObjectStore(STORE_OVERRIDES, { keyPath: 'id' });
-      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -27,7 +25,7 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 /**
- * Compresses an image file to prevent exceeding browser storage limits
+ * Compresses an image file client-side before upload to prevent exceeding payload limits
  */
 export async function compressImage(file: File, maxDimension = 1400, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -73,9 +71,156 @@ export async function compressImage(file: File, maxDimension = 1400, quality = 0
 }
 
 /**
- * Saves all custom uploaded projects to IndexedDB & localStorage
+ * Loads custom uploaded projects from server-side store (Netlify Blobs / API)
+ * with graceful fallback to IndexedDB and localStorage when offline or initializing
  */
-export async function saveCustomUploads(items: any[]): Promise<void> {
+export async function loadCustomUploads(): Promise<ProjectItem[]> {
+  let serverItems: ProjectItem[] | null = null;
+
+  // 1. Try server-side endpoints
+  const endpoints = ['/.netlify/functions/catalog-uploads', '/api/catalog-uploads'];
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        headers: { Accept: 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          serverItems = data;
+          break;
+        }
+      }
+    } catch {
+      // Continue to next endpoint or local cache
+    }
+  }
+
+  // 2. If server responded, cache to local storage for instant offline availability
+  if (serverItems !== null) {
+    saveToLocalCache(serverItems).catch(() => {});
+    return serverItems;
+  }
+
+  // 3. Fallback to local IndexedDB & localStorage cache
+  return loadFromLocalCache();
+}
+
+/**
+ * Uploads a new artwork proof to the server-side catalog using the owner passkey
+ */
+export async function uploadCustomArtwork(
+  itemData: Partial<ProjectItem>,
+  imageDataUrl: string | undefined,
+  ownerKey: string
+): Promise<ProjectItem> {
+  const payload = {
+    ...itemData,
+    imageData: imageDataUrl
+  };
+
+  const cleanKey = ownerKey.trim();
+  const endpoints = ['/.netlify/functions/catalog-uploads', '/api/catalog-uploads'];
+  let lastError: Error | null = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-key': cleanKey,
+          Authorization: `Bearer ${cleanKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.status === 401) {
+        throw new Error('Unauthorized: Invalid owner passkey. Check CATALOG_UPLOAD_KEY.');
+      }
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result && result.item) {
+          // Update local cache
+          const current = await loadFromLocalCache();
+          const updated = [result.item, ...current.filter((p: ProjectItem) => p.id !== result.item.id)];
+          await saveToLocalCache(updated);
+          return result.item;
+        }
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server returned HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('Unauthorized')) {
+        throw err;
+      }
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error('Failed to reach catalog upload server. Please try again.');
+}
+
+/**
+ * Deletes an artwork proof from the server-side catalog using the owner passkey
+ */
+export async function deleteCustomArtwork(id: string, ownerKey: string): Promise<boolean> {
+  const cleanKey = ownerKey.trim();
+  const endpoints = [
+    `/.netlify/functions/catalog-uploads?id=${encodeURIComponent(id)}`,
+    `/api/catalog-uploads/${encodeURIComponent(id)}`,
+    `/api/catalog-uploads?id=${encodeURIComponent(id)}`
+  ];
+
+  let lastError: Error | null = null;
+  let succeeded = false;
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-owner-key': cleanKey,
+          Authorization: `Bearer ${cleanKey}`
+        },
+        body: JSON.stringify({ id })
+      });
+
+      if (res.status === 401) {
+        throw new Error('Unauthorized: Invalid owner passkey. Check CATALOG_UPLOAD_KEY.');
+      }
+
+      if (res.ok) {
+        succeeded = true;
+        break;
+      }
+    } catch (err: any) {
+      if (err.message && err.message.includes('Unauthorized')) {
+        throw err;
+      }
+      lastError = err;
+    }
+  }
+
+  if (!succeeded && lastError) {
+    throw lastError;
+  }
+
+  // Remove from local cache
+  const current = await loadFromLocalCache();
+  const updated = current.filter((p: ProjectItem) => p.id !== id);
+  await saveToLocalCache(updated);
+
+  return true;
+}
+
+/**
+ * Local cache helpers
+ */
+async function saveToLocalCache(items: ProjectItem[]): Promise<void> {
   try {
     const db = await openDB();
     const tx = db.transaction(STORE_UPLOADS, 'readwrite');
@@ -83,38 +228,31 @@ export async function saveCustomUploads(items: any[]): Promise<void> {
     await new Promise<void>((resolve, reject) => {
       const clearReq = store.clear();
       clearReq.onsuccess = () => {
-        if (items.length === 0) {
-          resolve();
-          return;
-        }
-        let completed = 0;
+        if (items.length === 0) return resolve();
+        let count = 0;
         for (const item of items) {
           const req = store.put(item);
           req.onsuccess = () => {
-            completed++;
-            if (completed === items.length) resolve();
+            count++;
+            if (count === items.length) resolve();
           };
           req.onerror = () => reject(req.error);
         }
       };
       clearReq.onerror = () => reject(clearReq.error);
     });
-  } catch (err) {
-    console.warn('IndexedDB failed, falling back to localStorage', err);
+  } catch {
+    // ignore
   }
 
-  // Backup to localStorage
   try {
     localStorage.setItem('rv_user_custom_uploads_v5', JSON.stringify(items));
-  } catch (err) {
-    console.warn('localStorage quota warning', err);
+  } catch {
+    // ignore
   }
 }
 
-/**
- * Loads custom uploaded projects from IndexedDB or localStorage
- */
-export async function loadCustomUploads(): Promise<any[]> {
+async function loadFromLocalCache(): Promise<ProjectItem[]> {
   try {
     const db = await openDB();
     const tx = db.transaction(STORE_UPLOADS, 'readonly');
@@ -125,7 +263,6 @@ export async function loadCustomUploads(): Promise<any[]> {
         if (req.result && req.result.length > 0) {
           resolve(req.result);
         } else {
-          // Check fallback
           const saved = localStorage.getItem('rv_user_custom_uploads_v5') || localStorage.getItem('rv_user_custom_uploads_v4');
           resolve(saved ? JSON.parse(saved) : []);
         }
@@ -142,72 +279,33 @@ export async function loadCustomUploads(): Promise<any[]> {
 }
 
 /**
- * Saves image overrides
+ * Stub for obsolete image overrides as documented in specs
  */
-export async function saveImageOverride(id: string, dataUrl: string): Promise<void> {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(STORE_OVERRIDES, 'readwrite');
-    const store = tx.objectStore(STORE_OVERRIDES);
-    store.put({ id, dataUrl });
-  } catch (err) {
-    console.warn('IndexedDB override failed', err);
-  }
+export async function loadImageOverrides(): Promise<Record<string, string>> {
+  return {};
+}
 
-  try {
-    const saved = localStorage.getItem('rv_user_image_overrides_v1');
-    const parsed = saved ? JSON.parse(saved) : {};
-    parsed[id] = dataUrl;
-    localStorage.setItem('rv_user_image_overrides_v1', JSON.stringify(parsed));
-  } catch {
-    // ignore
-  }
+export async function saveImageOverride(_id: string, _dataUrl: string): Promise<void> {
+  // Deprecated stub
+}
+
+export async function saveCustomUploads(items: ProjectItem[]): Promise<void> {
+  await saveToLocalCache(items);
 }
 
 /**
- * Loads all image overrides
+ * Saved Owner Passkey in browser localStorage for convenient management
  */
-export async function loadImageOverrides(): Promise<Record<string, string>> {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(STORE_OVERRIDES, 'readonly');
-    const store = tx.objectStore(STORE_OVERRIDES);
-    return await new Promise((resolve) => {
-      const req = store.getAll();
-      req.onsuccess = () => {
-        const map: Record<string, string> = {};
-        if (req.result) {
-          for (const item of req.result) {
-            map[item.id] = item.dataUrl;
-          }
-        }
-        // Also merge localStorage
-        try {
-          const saved = localStorage.getItem('rv_user_image_overrides_v1');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            Object.assign(map, parsed);
-          }
-        } catch {
-          // ignore
-        }
-        resolve(map);
-      };
-      req.onerror = () => {
-        try {
-          const saved = localStorage.getItem('rv_user_image_overrides_v1');
-          resolve(saved ? JSON.parse(saved) : {});
-        } catch {
-          resolve({});
-        }
-      };
-    });
-  } catch {
-    try {
-      const saved = localStorage.getItem('rv_user_image_overrides_v1');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
+export function getSavedOwnerKey(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem(OWNER_KEY_STORAGE) || '';
+}
+
+export function saveOwnerKey(key: string): void {
+  if (typeof window === 'undefined') return;
+  if (!key) {
+    localStorage.removeItem(OWNER_KEY_STORAGE);
+  } else {
+    localStorage.setItem(OWNER_KEY_STORAGE, key.trim());
   }
 }

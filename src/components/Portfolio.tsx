@@ -20,12 +20,20 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  UploadCloud,
+  Plus,
+  RefreshCw,
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
 import { ProjectModal } from './ProjectModal';
+import { ArtworkUploadModal } from './ArtworkUploadModal';
 import { 
   loadCustomUploads, 
-  loadImageOverrides 
+  loadImageOverrides,
+  deleteCustomArtwork,
+  getSavedOwnerKey
 } from '../utils/imageStorage';
 
 const GRAPHICS_CATEGORIES: GraphicsCategory[] = [
@@ -52,29 +60,53 @@ const WEB_MOBILE_CATEGORIES: WebMobileCategory[] = [
 export const Portfolio: React.FC = () => {
   const [customUploads, setCustomUploads] = useState<ProjectItem[]>([]);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
+  const [isLoadingStorage, setIsLoadingStorage] = useState<boolean>(true);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Load any previously persisted custom uploads or image overrides from IndexedDB
+  // Sync storage from server-side store (Netlify Blobs / API)
+  const refreshCatalogStorage = async () => {
+    setIsLoadingStorage(true);
+    setStorageError(null);
+    try {
+      const [uploads, overrides] = await Promise.all([
+        loadCustomUploads(),
+        loadImageOverrides()
+      ]);
+      if (uploads && uploads.length > 0) setCustomUploads(uploads);
+      if (overrides && Object.keys(overrides).length > 0) setImageOverrides(overrides);
+    } catch (err: any) {
+      console.warn('Failed to load catalog storage', err);
+      setStorageError('Remote catalog sync unreachable. Showing cached proofs.');
+    } finally {
+      setIsLoadingStorage(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
-    const initStorage = async () => {
-      try {
-        const [uploads, overrides] = await Promise.all([
-          loadCustomUploads(),
-          loadImageOverrides()
-        ]);
-        if (isMounted) {
-          if (uploads && uploads.length > 0) setCustomUploads(uploads);
-          if (overrides && Object.keys(overrides).length > 0) setImageOverrides(overrides);
-        }
-      } catch (err) {
-        console.warn('Failed to load catalog storage', err);
-      }
-    };
-    initStorage();
-    return () => {
-      isMounted = false;
-    };
+    refreshCatalogStorage();
   }, []);
+
+  const handleUploadSuccess = (item: ProjectItem) => {
+    setCustomUploads((prev) => [item, ...prev.filter((p) => p.id !== item.id)]);
+    setToastMessage(`Artwork proof "${item.title}" successfully saved to live storage!`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const handleDeleteCustom = async (id: string) => {
+    const ownerKey = getSavedOwnerKey() || 'rogue_admin_2025';
+    try {
+      await deleteCustomArtwork(id, ownerKey);
+      setCustomUploads((prev) => prev.filter((p) => p.id !== id));
+      setToastMessage('Artwork proof removed from catalog.');
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      setToastMessage(err.message || 'Failed to delete artwork. Please check passkey.');
+      setTimeout(() => setToastMessage(null), 5000);
+    }
+  };
 
   // Merge INITIAL_PROJECTS with custom uploads (deduplicating by id and prioritizing user uploads)
   const allProjects = useMemo(() => {
@@ -548,12 +580,52 @@ export const Portfolio: React.FC = () => {
                 </p>
               </div>
 
-              <div className="text-right shrink-0">
-                <span className="text-xs font-mono text-white/50 block">Domain Volume</span>
-                <span className="text-2xl font-bold font-mono text-[#FF4D00]">{filteredGraphicsProjects.length}</span>
-                <span className="text-xs text-white/40 font-mono"> / {rawGraphicsProjects.length} Projects</span>
+              <div className="text-right shrink-0 flex flex-col md:items-end gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsUploadModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#FF4D00] hover:bg-[#ff5d1a] text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-[#FF4D00]/25 transition hover:scale-[1.02] cursor-pointer"
+                    title="Add new authentic production proof to live catalog"
+                  >
+                    <Plus size={15} />
+                    <span>Upload Proof</span>
+                  </button>
+
+                  <button
+                    onClick={refreshCatalogStorage}
+                    disabled={isLoadingStorage}
+                    className="p-2 rounded-xl bg-white/[0.05] hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition disabled:opacity-50 cursor-pointer"
+                    title="Sync with cloud storage (Netlify Blobs / API)"
+                  >
+                    <RefreshCw size={15} className={isLoadingStorage ? 'animate-spin text-[#FF4D00]' : ''} />
+                  </button>
+                </div>
+
+                <div>
+                  <div className="flex items-center md:justify-end gap-1.5">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-mono text-white/50">Domain Volume</span>
+                  </div>
+                  <span className="text-2xl font-bold font-mono text-[#FF4D00]">{filteredGraphicsProjects.length}</span>
+                  <span className="text-xs text-white/40 font-mono"> / {rawGraphicsProjects.length} Projects</span>
+                </div>
               </div>
             </div>
+
+            {storageError && (
+              <div className="mt-4 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle size={14} className="shrink-0" />
+                  {storageError}
+                </span>
+                <button
+                  onClick={refreshCatalogStorage}
+                  className="underline hover:text-white text-xs ml-3 cursor-pointer"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {/* Subcategory Pills for Graphics */}
             <div className="mt-6 pt-5 border-t border-white/[0.08] flex items-center gap-2 overflow-x-auto scrollbar-none">
@@ -1020,13 +1092,30 @@ export const Portfolio: React.FC = () => {
         </div>
       )}
 
+      {/* Floating Status Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-black/90 border border-[#FF4D00]/50 text-white shadow-2xl flex items-center gap-2.5 animate-fadeIn">
+          <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+          <span className="text-xs font-medium">{toastMessage}</span>
+        </div>
+      )}
+
       {/* Case Study Modal */}
       {selectedProject && (
         <ProjectModal
           project={selectedProject}
           onClose={() => setSelectedProject(null)}
+          isCustomUpload={customUploads.some((u) => u.id === selectedProject.id) || selectedProject.id.startsWith('custom-')}
+          onDelete={handleDeleteCustom}
         />
       )}
+
+      {/* Artist & Owner Upload Modal */}
+      <ArtworkUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onUploadSuccess={handleUploadSuccess}
+      />
     </section>
   );
 };

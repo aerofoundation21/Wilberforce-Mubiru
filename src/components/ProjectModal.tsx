@@ -1,15 +1,41 @@
-import React from 'react';
-import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, MessageCircle, Calendar, MapPin, Layers, Printer, Package, Shield, ExternalLink, Trash2, Loader2 } from 'lucide-react';
 import { ProjectItem } from '../types';
 import { WHATSAPP_NUMBER } from '../data/projects';
 
 interface ProjectModalProps {
   project: ProjectItem | null;
   onClose: () => void;
+  onDelete?: (id: string) => Promise<void> | void;
+  isCustomUpload?: boolean;
 }
 
-export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) => {
+export const ProjectModal: React.FC<ProjectModalProps> = ({ 
+  project, 
+  onClose,
+  onDelete,
+  isCustomUpload = false
+}) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   if (!project) return null;
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await onDelete(project.id);
+      onClose();
+    } catch (err) {
+      console.error('Delete failed:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Pre-fill message for WhatsApp
   const whatsappText = encodeURIComponent(
@@ -148,9 +174,30 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
             )}
           </div>
 
-          {/* Footer note */}
+          {/* Footer note & Owner Actions */}
           <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-white/40">
-            <span>Rogue Ventures • Production Archive</span>
+            <div className="flex items-center gap-3">
+              <span>Rogue Ventures • Production Archive</span>
+              {onDelete && isCustomUpload && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition ${
+                    confirmDelete
+                      ? 'bg-red-600 text-white animate-pulse'
+                      : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30'
+                  }`}
+                >
+                  {isDeleting ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={12} />
+                  )}
+                  <span>{confirmDelete ? 'Confirm Delete Proof?' : 'Delete Proof'}</span>
+                </button>
+              )}
+            </div>
             <button
               onClick={onClose}
               className="text-white hover:text-[#FF4D00] transition underline"
