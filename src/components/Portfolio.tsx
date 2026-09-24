@@ -162,18 +162,18 @@ export const Portfolio: React.FC = () => {
   // Safe fallback image if original file path is still loading
   const getFallbackArtwork = (tag: string) => {
     if (tag.includes('Safety') || tag.includes('Heat Press') || tag.includes('Reflector')) {
-      return '/portfolio/gsb-reflective-vests.svg';
+      return '/portfolio/makindye-safety-vests.jpg';
     }
     if (tag.includes('DTF')) {
-      return '/portfolio/gsb-promotional-tshirts.svg';
+      return '/portfolio/god-is-my-pillar-collection.jpg';
     }
     if (tag.includes('Screen Printing')) {
-      return '/portfolio/school-sports-uniforms.svg';
+      return '/portfolio/kigorobya-run-2023.jpg';
     }
     if (tag.includes('Vinyl')) {
-      return '/portfolio/weatherproof-vinyl-decals.svg';
+      return '/portfolio/uganda-institutions-branding.jpg';
     }
-    return '/portfolio/gsb-reflective-vests.svg';
+    return '/portfolio/makindye-safety-vests.jpg';
   };
 
   // Handle hash navigation to directly open the chosen catalog
