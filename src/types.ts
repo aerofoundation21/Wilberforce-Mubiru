@@ -49,12 +49,3 @@ export interface ProjectItem {
   location?: string;
 }
 
-export interface QuoteRequest {
-  itemType: string;
-  quantity: number;
-  printMethod: string;
-  targetDate: string;
-  organization: string;
-  notes: string;
-}
-

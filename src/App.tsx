@@ -5,7 +5,6 @@ import { Hero } from './components/Hero';
 import { TrustedBy } from './components/TrustedBy';
 import { Portfolio } from './components/Portfolio';
 import { Services } from './components/Services';
-import { QuoteCalculator } from './components/QuoteCalculator';
 import { Experience } from './components/Experience';
 import { About } from './components/About';
 import { Contact } from './components/Contact';
@@ -36,9 +35,6 @@ export default function App() {
 
         {/* Core Services and Capabilities: Screen Printing, Heat Press, Vinyl Stickers */}
         <Services />
-
-        {/* Interactive Bulk Order Calculator */}
-        <QuoteCalculator />
 
         {/* Professional Experience: GYA Theirworld 2026-2028 & Rogue Ventures */}
         <Experience />

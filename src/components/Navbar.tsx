@@ -39,9 +39,6 @@ export const Navbar: React.FC = () => {
           <a href="#services" className="hover:text-white transition py-1">Services</a>
           <a href="#experience" className="hover:text-white transition py-1">Experience</a>
           <a href="#about" className="hover:text-white transition py-1">About</a>
-          <a href="#calculator" className="hover:text-[#FF4D00] transition py-1 flex items-center gap-1">
-            Quote Builder
-          </a>
           <a href="#contact" className="hover:text-white transition py-1">Contact</a>
         </nav>
 
@@ -121,13 +118,6 @@ export const Navbar: React.FC = () => {
             className="block py-2 text-sm text-white/80 hover:text-white font-medium"
           >
             About Wilberforce Mubiru
-          </a>
-          <a
-            href="#calculator"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-sm text-[#FF4D00] hover:text-[#ff6b26] font-medium"
-          >
-            Bulk Order Price Calculator
           </a>
           <a
             href="#contact"

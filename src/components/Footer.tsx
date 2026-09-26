@@ -30,7 +30,6 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-6 text-xs">
             <a href="#work" className="hover:text-white transition">Portfolio</a>
             <a href="#services" className="hover:text-white transition">Services</a>
-            <a href="#calculator" className="hover:text-white transition">Quote Builder</a>
             <a
               href={WHATSAPP_LINK}
               target="_blank"
